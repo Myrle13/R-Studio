@@ -1,0 +1,305 @@
+---
+title: "Assignment"
+author: "Nhu Mai Nguyen"
+date: "5/16/2021"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+sur = read.table("C:/Users/Myrtle Mai Nguyen/Desktop/Stat2170/Assignment datasets-20210511/surg.dat", header = TRUE)
+kml = read.table("C:/Users/Myrtle Mai Nguyen/Desktop/Stat2170/Assignment datasets-20210511/kml.dat", header = TRUE)
+```
+
+## This is my first heading
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+## Question 1
+a. Produce a scatter plot
+
+```{r chunk 1}
+sur$gender <- NULL
+plot(sur)
+```
+* Remove gender variable because it is dummy variable. It is IV's and has no role to impact DV's.
+
+b. Compute the correlation matrix
+```{r chunk 2}
+cor(sur)
+```
+c. Fit a model
+- mathematical multiple regression model
+$Y = \beta_0 + x_1\beta_1 + x_2\beta_2+ x_3\beta_3 + x_4\beta_4+ x_5\beta_5 + \epsilon$ 
+
+$Y = dependent variable - survival$
+
+$beta_0 = intercept$
+
+$x_1 = the first IV's - blood variable$
+
+$x_2 = the  second IV's - prognosis variable$
+
+$x_3 = the third IV's - enzyme variable$
+
+$x_4 = the fourth IV's - liver variable$
+
+$x_5 = the fifth IV's - age variable$
+
+* the intercept is:
+
+$b_0 = \bar{y} - \bar{x_1}b_1 - \bar{x_2}b_2 - ... - \bar{x_n}b_n$
+
+* mathematical hypotheses for the overall ANOVA 
+
+$\sum_{i = 1}^{n}{(Y_i - \bar{Y})^2} = \sum_{i = 1}^{n}{(\hat{Y_i} - \bar{Y})^2} + \sum_{i = 1}^{n}{(Y_i - \hat{Y})^2}$
+
+```{r chunk 3}
+sur.lm = lm(survival ~ blood + prognosis + enzyme + liver + age, data = sur)
+anova(sur.lm)
+```
+ * Compute the F-test and P-value
+```{r chunk 4}
+sur.lm = lm(survival ~ blood + prognosis + enzyme + liver + age, data = sur)
+summary(sur.lm)
+```
+$F-statistic = 21.87 $ on $5$ and $48 DF$
+
+$p-value = 2.386e-11$
+
+* State the null hypothesis:
+
+$H_0 : \beta_0 + \beta_1 + \beta_2 +...+\beta_k = 0$  
+
+d. Find the best linear regression
+
+* First check the line of plot to see which variable has high correlated
+
+```{r chunk 5}
+pairs(sur, panel = panel.smooth)
+```
+
+* Start with all predictors
+
+```{r chunk 6}
+sur.1 = lm(survival ~ . , data = sur)
+summary(sur.1)
+```
+
+* After summary the data, we can see the liver with $p-value$ is larger than response, so it is insignificant variable so remove it.
+
+```{r chunk 7}
+sur.2 = lm(survival ~ blood + prognosis + enzyme + age, data = sur)
+summary(sur.2)
+```
+
+* After removing the liver variable, we can see the age variable has same problem like liver, it shows up the $p-value$ larger than 0.05 then we need to remove it agains to get the best.
+
+```{r chunk 8}
+sur.3 = lm(survival ~ blood + prognosis + enzyme, data = sur)
+summary(sur.3)
+```
+
+* Check diagnostics using plot
+
+```{r chunk 9}
+plot(sur.3, which = 1:2)
+```
+
+* Check residuals against predictors
+
+```{r chunk 10}
+par(mfrow = c(1,3))
+plot(sur$blood, residuals(sur.3))
+plot(sur$prognosis, residuals(sur.3))
+plot(sur$enzyme, residuals(sur.3))
+```
+
+* Model interpretation - this part will help to find goodness of fit or the best fit linear
+
+```{r chunk 11}
+summary(sur.3)$coefficients
+```
+
+* For a unit increase in blood there is a 101.053 increase in survival time.
+
+* For a unit increase in prognosis there is a 9.281 increase in survival time.
+
+* For a unit increase in enzyme there is a 12.127 increase in survival time.
+
+e. 
+
+* It is not appropriate to use the multiple regression model because it has a negative intercept. This means that the expected value on your dependent variable will be less than 0 when all predictors variables are set to 0.
+
+f. Re-fit the model using log(survival)
+
+```{r chunk 12}
+pairs(sur, panel = panel.smooth)
+```
+
+* Start with all predictors
+
+```{r chunk 13}
+sur.1 = lm(log(survival) ~ . , data = sur)
+summary(sur.1)
+```
+
+* After summary the data, liver is insignificant variable so remove it.
+
+```{r chunk 14}
+sur.2 = lm(log(survival) ~ blood + prognosis + enzyme + age, data = sur)
+summary(sur.2)
+```
+
+* After removing the liver variable, need to remove age variable to get the best.
+
+```{r chunk 15}
+sur.3 = lm(log(survival) ~ blood + prognosis + enzyme, data = sur)
+summary(sur.3)
+```
+
+* Check diagnostics using plot
+
+```{r chunk 16}
+plot(sur.3, which = 1:2)
+```
+
+* Check residuals against predictors
+
+```{r chunk 17}
+par(mfrow = c(1, 3))
+plot(sur$blood, residuals(sur.3))
+plot(sur$prognosis, residuals(sur.3))
+plot(sur$enzyme, residuals(sur.3))
+```
+
+* Model interpretation - this part will help to find goodness of fit or the best fit.
+
+```{r chunk 18}
+summary(sur.3)$coefficients
+```
+
+g. Explain the function of log to find the linear
+
+* Log is a con venient means of transforming a highly skewed variable into a more normalized dataset.
+
+* When modeling variables having non-linear realationships, the risks of making mistakes are increased.
+
+* By changing the distribution of the feature to a more normally-shaped bell curve, using the logarithm of one or more variable enhances the model's fit.
+
+##Question 2:
+
+a.
+
+```{r chunk 19}
+with(kml, table(driver, car))
+```
+
+* The design of the study is balanced. Because the replicates are available for all factors' pairs
+
+b. Preliminary investigation
+
+```{r chunk 20}
+with(kml, interaction.plot(driver, car, kmL))
+with(kml, interaction.plot(car, driver, kmL))
+```
+
+* Result: The lines are parallel, so there is no interaction between the two factors.
+
+* Boxplot:
+
+```{r chunk 21}
+boxplot(kmL ~ driver + car, data = kml)
+```
+
+c. Group test
+
+```{r chunk 22}
+kml.int = lm(kmL ~ factor(car) * factor(driver), data = kml)
+anova(kml.int)
+```
+
+* Fit reduced model without interaction (only main effects)
+
+```{r chunk 23}
+kml.reduced = update(kml.int, . ~ . - car:driver)
+```
+
+* ANOVA table for the model with interaction
+
+```{r chunk 24}
+anova(kml.int)
+```
+
+* Model $Y = \mu + \alpha_i + \beta_j + \gamma_ij + \epsilon$
+
+  Hypotheses: $H0 : \gamma_ij = 0$, 
+             H1 : at least one $\gamma_ij$ non-zero
+             
+  $P-Value = 0.3715 > 0.05$
+  
+* The interaction is not significant ⇒ fit reduced model with main effects only
+
+* Fit model without interaction
+```{r chunk 25}
+anova(kml.reduced)
+```
+
+* Main Effects: Driver
+
+  Model $Y = \mu + \alpha_i + \beta_j + \epsilon$
+  
+  Hypotheses: $H0 : \beta_j = 0$
+  against H1 : at least one $\beta_j$ non-zero
+  
+  $P-Value = 2.2e-16 < 0.05$
+  
+  Driver is significant
+
+* Main Effects: Car
+  Model $Y = \mu + \alpha_i + \beta_j + \epsilon$
+
+  Hypotheses: $H0 : \alpha_i = 0$
+  against H1 : at least one $\alpha_i$ non-zero
+  
+  $P-Value = 2.2e-16 < 0.05$
+
+* Car is significant
+
+* Check Assumptions
+```{r chunk 26}
+plot(kml.reduced, which = 1:2)
+```
+* Normal QQ plot shows normality.
+
+* The points is scattered randomly near the line.
+
+d. Conclusion: 
+
+* Because the result for model with interaction, p-value is insignificant, so the effect on the mean outcome of a change in factor Driver has no interaction of the level of factor Car.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
